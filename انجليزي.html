@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الإنجليزية المثير</title>
+    <style>
+        /* إعدادات عامة */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background 1s ease, color 0.5s ease;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+            display: none; /* مخفي في البداية حتى يتم الضغط على زر البدء */
+        }
+
+        /* شاشة البداية */
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            text-align: center;
+        }
+
+        #start-overlay h1 { font-size: 3rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .start-btn {
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            background: #ffeb3b;
+            color: #333;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            animation: pulse 2s infinite;
+        }
+        .start-btn:hover { transform: scale(1.1); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 235, 59, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 235, 59, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 235, 59, 0); }
+        }
+
+        h1 { margin-bottom: 10px; }
+        p { font-size: 1.2rem; margin-bottom: 20px; }
+        
+        /* شريط التقدم */
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* الأزرار والخيارات */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.3s;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn:hover { transform: scale(1.05); }
+        .btn:active { transform: scale(0.95); }
+
+        .btn.correct { background-color: #4CAF50; color: white; }
+        .btn.wrong { background-color: #f44336; color: white; }
+
+        /* زر التحكم بالصوت */
+        #music-control {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        /* --- تصميم المستويات (Themes) --- */
+        /* المستوى 1: هادئ (Calm) */
+        body.level-1 { background: linear-gradient(135deg, #e0f7fa 0%, #b2dfdb 100%); color: #006064; }
+        body.level-1 .progress-bar { background-color: #00bcd4; }
+        body.level-1 .btn:hover { background-color: #b2ebf2; }
+
+        /* المستوى 2: سعادة وفوز (Happy) */
+        body.level-2 { background: linear-gradient(135deg, #fff9c4 0%, #ffcc80 100%); color: #e65100; }
+        body.level-2 .container { border: 4px solid #ffeb3b; }
+        body.level-2 .progress-bar { background-color: #ff9800; }
+        body.level-2 .btn:hover { background-color: #ffe0b2; }
+
+        /* المستوى 3: حماس وصعوبة (Intense) */
+        body.level-3 { background: linear-gradient(135deg, #212121 0%, #b71c1c 100%); color: #ffebee; }
+        body.level-3 .container { background: rgba(30, 30, 30, 0.95); color: #ff5252; border: 2px solid #ff1744; box-shadow: 0 0 20px #ff1744; }
+        body.level-3 .btn { background-color: #424242; color: #fff; }
+        body.level-3 .progress-bar { background-color: #ff1744; box-shadow: 0 0 10px #ff1744; }
+        body.level-3 .btn:hover { background-color: #616161; border: 1px solid #ff1744; }
+
+        #result-screen { display: none; }
+    </style>
+</head>
+<body class="level-1">
+
+    <audio id="bg-music" loop>
+        متصفحك لا يدعم تشغيل الصوت.
+    </audio>
+
+    <div id="start-overlay">
+        <h1>تحدي اللغة الإنجليزية</h1>
+        <p>30 سؤالاً، 3 مستويات من الحماس!</p>
+        <button class="start-btn" onclick="startGame()">ابدأ التحدي 🎵</button>
+    </div>
+
+    <div class="container" id="game-container">
+        <button id="music-control" onclick="toggleMusic()">🔊</button>
+        <div id="quiz-screen">
+            <h2 id="level-title">المستوى الأول</h2>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <h1 id="question-text">...</h1>
+            <div class="options-grid" id="options-container"></div>
+            <p id="feedback" style="height: 20px; margin-top: 15px; font-weight: bold;"></p>
+        </div>
+
+        <div id="result-screen">
+            <h1>انتهى التحدي!</h1>
+            <p>نتيجتك النهائية:</p>
+            <h2 id="final-score" style="font-size: 3rem;">0 / 30</h2>
+            <button class="btn" onclick="location.reload()" style="background:#2196F3; color:white; width:100%;">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <script>
+        // --- قائمة المسارات لملفات الموسيقى (تأكد من تسمية ملفاتك هكذا) ---
+        const musicSources = {
+            1: 'music_level1.mp3', // هادئ
+            2: 'music_level2.mp3', // حماس متوسط
+            3: 'music_level3.mp3'  // حماس شديد
+        };
+
+        // --- قاعدة بيانات الأسئلة (30 سؤال) ---
+        const questions = [
+            // === المستوى 1: سهل (1-10) ===
+            { q: "What is the opposite of 'Big'?", options: ["Small", "Tall", "Huge", "Wide"], answer: 0 },
+            { q: "I ___ a student.", options: ["is", "are", "am", "be"], answer: 2 },
+            { q: "Choose the correct spelling:", options: ["Appel", "Apple", "Apel", "Aplle"], answer: 1 },
+            { q: "Sun is to Day as Moon is to ___", options: ["Light", "Star", "Night", "Sky"], answer: 2 },
+            { q: "She ___ to school every day.", options: ["go", "goes", "going", "gone"], answer: 1 },
+            { q: "What color is a banana?", options: ["Red", "Blue", "Yellow", "Purple"], answer: 2 },
+            { q: "We have two ___.", options: ["foot", "foots", "feet", "feets"], answer: 2 },
+            { q: "___ is your name?", options: ["Who", "What", "Where", "Why"], answer: 1 },
+            { q: "Select the verb:", options: ["Happy", "Run", "Blue", "Table"], answer: 1 },
+            { q: "Yesterday, I ___ football.", options: ["play", "played", "playing", "plays"], answer: 1 },
+            // === المستوى 2: متوسط (11-20) ===
+            { q: "I have lived here ___ 2010.", options: ["for", "since", "ago", "in"], answer: 1 },
+            { q: "If it rains, we ___ inside.", options: ["stay", "will stay", "stayed", "staying"], answer: 1 },
+            { q: "The book was written ___ JK Rowling.", options: ["with", "from", "by", "of"], answer: 2 },
+            { q: "He is the ___ runner in the team.", options: ["fast", "faster", "fastest", "fastly"], answer: 2 },
+            { q: "I enjoy ___ movies.", options: ["watch", "to watch", "watching", "watched"], answer: 2 },
+            { q: "She didn't ___ to the party.", options: ["come", "came", "comes", "coming"], answer: 0 },
+            { q: "Would you like ___ coffee?", options: ["some", "any", "a", "many"], answer: 0 },
+            { q: "I'm interested ___ learning English.", options: ["on", "at", "in", "for"], answer: 2 },
+            { q: "Could you please turn ___ the light?", options: ["out", "in", "off", "up"], answer: 2 },
+            { q: "They ___ dinner when I arrived.", options: ["eat", "ate", "were eating", "have eaten"], answer: 2 },
+            // === المستوى 3: صعب (21-30) ===
+            { q: "The meeting was ___ due to the storm.", options: ["called off", "called in", "called out", "called up"], answer: 0 },
+            { q: "By next year, I ___ my degree.", options: ["finish", "will finish", "will have finished", "am finishing"], answer: 2 },
+            { q: "Rarely ___ such a beautiful sunset.", options: ["I have seen", "have I seen", "I saw", "seen I have"], answer: 1 },
+            { q: "He is accused ___ stealing the money.", options: ["of", "with", "for", "about"], answer: 0 },
+            { q: "Don't count your chickens before they ___.", options: ["born", "hatch", "lay", "die"], answer: 1 },
+            { q: "The synonym of 'Obstinate' is:", options: ["Flexible", "Stubborn", "Obedient", "Kind"], answer: 1 },
+            { q: "Had I known, I ___ you.", options: ["would help", "will help", "would have helped", "helped"], answer: 2 },
+            { q: "It's high time we ___ home.", options: ["go", "went", "gone", "going"], answer: 1 },
+            { q: "___ strictly speaking, spiders are not insects.", options: ["Although", "However", "Despite", "But"], answer: 1 },
+            { q: "The intricate plot was hard to ___.", options: ["figure out", "figure in", "figure off", "figure away"], answer: 0 }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let currentLevel = 1;
+
+        const questionText = document.getElementById("question-text");
+        const optionsContainer = document.getElementById("options-container");
+        const progressBar = document.getElementById("progress-bar");
+        const levelTitle = document.getElementById("level-title");
+        const feedback = document.getElementById("feedback");
+        const body = document.body;
+        const bgMusic = document.getElementById("bg-music");
+        const musicBtn = document.getElementById("music-control");
+        let isPlaying = false; 
+
+        // دالة تغيير مصدر الموسيقى وتشغيلها
+        function switchMusic(level) {
+            const newMusicSrc = musicSources[level];
+            
+            // إذا كانت الموسيقى الحالية هي نفسها المطلوبة، لا تفعل شيئاً
+            if (bgMusic.src.includes(newMusicSrc) && isPlaying) {
+                return;
+            }
+
+            // إيقاف الموسيقى الحالية
+            bgMusic.pause();
+            
+            // تغيير مصدر الصوت
+            bgMusic.src = newMusicSrc;
+            bgMusic.load(); // تحميل المصدر الجديد
+            
+            // تشغيل الموسيقى الجديدة (بشرط أن يكون المستخدم قد ضغط على زر البداية)
+            if (isPlaying) {
+                bgMusic.volume = 0.3; // الصوت منخفض قليلاً
+                bgMusic.play().catch(e => console.log("Music play blocked: " + e));
+                musicBtn.textContent = "🔊";
+            } else {
+                 musicBtn.textContent = "🔇";
+            }
+        }
+
+        // دالة بدء اللعبة (لحل مشكلة الصوت التلقائي)
+        function startGame() {
+            document.getElementById("start-overlay").style.display = "none";
+            document.getElementById("game-container").style.display = "block";
+            isPlaying = true; // نؤكد أن المستخدم سمح بالتشغيل
+            
+            // تشغيل موسيقى المستوى الأول
+            switchMusic(1);
+
+            loadQuestion();
+        }
+
+        // دالة كتم/تشغيل الصوت
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicBtn.textContent = "🔊";
+                isPlaying = true;
+            } else {
+                bgMusic.pause();
+                musicBtn.textContent = "🔇";
+                isPlaying = false;
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestion >= questions.length) {
+                showResults();
+                return;
+            }
+
+            updateLevelDesign();
+
+            const qData = questions[currentQuestion];
+            questionText.textContent = qData.q;
+            optionsContainer.innerHTML = "";
+            feedback.textContent = "";
+
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement("button");
+                btn.className = "btn";
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function updateLevelDesign() {
+            let nextLevel = 1;
+            if (currentQuestion < 10) {
+                nextLevel = 1;
+                levelTitle.textContent = "المستوى 1: استرخِ وأجب (هادئ)";
+            } else if (currentQuestion < 20) {
+                nextLevel = 2;
+                levelTitle.textContent = "المستوى 2: شعور الفوز! (حماس متوسط)";
+            } else {
+                nextLevel = 3;
+                levelTitle.textContent = "المستوى 3: منطقة الخطر! (حماس شديد)";
+            }
+
+            // تطبيق التصميم (الخلفية والألوان)
+            body.classList.remove("level-1", "level-2", "level-3");
+            body.classList.add(`level-${nextLevel}`);
+
+            // تغيير الموسيقى إذا انتقلنا لمستوى جديد
+            if (nextLevel !== currentLevel) {
+                currentLevel = nextLevel;
+                switchMusic(currentLevel);
+            }
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            const allBtns = optionsContainer.children;
+            for (let btn of allBtns) { btn.disabled = true; }
+
+            const correctIndex = questions[currentQuestion].answer;
+
+            if (selectedIndex === correctIndex) {
+                btnElement.classList.add("correct");
+                score++;
+                feedback.textContent = "صحيح! ✅";
+                feedback.style.color = currentQuestion >= 20 ? "#4CAF50" : "green";
+            } else {
+                btnElement.classList.add("wrong");
+                allBtns[correctIndex].classList.add("correct");
+                feedback.textContent = "خاطئ! ❌";
+                feedback.style.color = "red";
+            }
+
+            setTimeout(() => {
+                currentQuestion++;
+                loadQuestion();
+            }, 1200);
+        }
+
+        function showResults() {
+            bgMusic.pause(); // إيقاف الموسيقى عند النهاية
+            document.getElementById("quiz-screen").style.display = "none";
+            document.getElementById("result-screen").style.display = "block";
+            document.getElementById("final-score").textContent = `${score} / ${questions.length}`;
+            body.className = "level-2"; 
+            levelTitle.textContent = "النتيجة النهائية";
+        }
+    </script>
+</body>
+</html>
